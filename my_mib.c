@@ -3,12 +3,16 @@
 #include <snmp_scalar.h>
 #include <esp_log.h>
 #include <snmp_asn1.h>
-#include <sensor.h>
-#include <esp32-hal.h>
-#include <util.h>
+//#include <sensor.h>
+//#include <esp32-hal.h>
+//#include <util.h>
+#include <freertos/event_groups.h>
+#include <sht31.h>
 
 #include "networking.h"
 #include "my_mib.h"
+#include "../../main/util.h"
+#include "simple_snmp_agent.h"
 
 
 extern unsigned char UUID[16];
@@ -54,16 +58,18 @@ const struct snmp_mib ubirch_mib = SNMP_MIB_CREATE(my_base_oid, &ubirch_tree_nod
 
 /* temperature      .1.3.6.1.4.1.54021.1.1.0 */
 static s16_t get_temperature_value(struct snmp_node_instance *instance, void *value) {
-	u32_t *uint_ptr = (u32_t*) value;
-	*uint_ptr = (u32_t)sensor_temperature();
-	return sizeof(*uint_ptr);
+	float *float_ptr = (float *) value;
+	sht31_readTempHum();
+	*float_ptr = sht31_readTemperature();
+	return sizeof(*float_ptr);
 }
 
 /* humidity         .1.3.6.1.4.1.54021.1.2.0 */
 static s16_t get_humidity_value(struct snmp_node_instance *instance, void *value){
-	u32_t *uint_ptr = (u32_t*) value;
-	*uint_ptr = (u32_t)sensor_humidity();
-	return sizeof(*uint_ptr);
+	float *float_ptr = (float *) value;
+	sht31_readTempHum();
+	*float_ptr = sht31_readHumidity();
+	return sizeof(*float_ptr);
 }
 
 /* timestamp        .1.3.6.1.4.1.54021.1.3.0 */
@@ -77,22 +83,47 @@ static s16_t get_timestamp_value(struct snmp_node_instance *instance, void *valu
 
 /* uuid             .1.3.6.1.4.1.54021.1.4.0 */
 static s16_t get_uuid_value(struct snmp_node_instance* instance, void* value) {
-	char *uuid = get_hw_ID_string();
-	size_t uuid_len = strlen((char *)uuid);
-	u8_t *uint_ptr = (u8_t *) value;
-	memcpy(uint_ptr, uuid, uuid_len);
-	free(uuid);
-	return uuid_len * sizeof(*uint_ptr);
+	u8_t *char_ptr = (u8_t *) value;
+	memcpy(char_ptr, (u8_t *)UUID, UUID_SIZE);
+	return UUID_SIZE * sizeof(*char_ptr);
 }
+
+
+union
+{
+	float f;
+	time_t t;
+	u8_t c[4];
+}snmp_value;
 
 /* complete package .1.3.6.1.4.1.54021.1.5.0 */
 static s16_t get_complete_package(struct snmp_node_instance *instance, void *value) {
+/*!
+ * |----UUID----|--TIMESTAMP--|--TEMPERATURE--|--HUMIDITY--|
+ * | (16 Byte)  |  (4 Byte)   |  (4 Byte)     |  (4 Byte)  |
+ */
 
-	sensor_measure(snmp_data_buffer);
+	u8_t buffer[SNMP_BUFFER_SIZE];
+
+	memcpy(buffer, UUID, UUID_SIZE);
+
+	time_t now;
+	time(&snmp_value.t);
+	memcpy((buffer + 16), snmp_value.c, 4);
+
+	//TODO
+	sht31_readTempHum();
+
+	snmp_value.f = sht31_readTemperature();
+	memcpy((buffer + 20), snmp_value.c, 4);
+
+	snmp_value.f = sht31_readHumidity();
+	memcpy((buffer + 24), snmp_value.c, 4);
 
 	u8_t *uint_ptr = (u8_t*) value;
-	memcpy(uint_ptr,snmp_data_buffer,strlen((char *)snmp_data_buffer));
+	memcpy(uint_ptr, buffer, SNMP_BUFFER_SIZE);
+	memcpy(snmp_data_buffer, buffer, SNMP_BUFFER_SIZE);
 	xEventGroupSetBits(network_event_group, SNMP_READY);
 
-	return strlen((char *)snmp_data_buffer) * sizeof(*uint_ptr);
+	return (SNMP_BUFFER_SIZE * sizeof(*uint_ptr));
 }

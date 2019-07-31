@@ -52,16 +52,10 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/event_groups.h"
-#include "esp_system.h"
-#include "esp_wifi.h"
-#include "esp_event_loop.h"
 #include "esp_log.h"
 
-//--- GPIO library
-#include "driver/gpio.h"
 
 //--- LwIP library
-#include "nvs_flash.h"
 #include "lwip/err.h"
 #include "lwip/sys.h"
 
@@ -130,11 +124,12 @@ static void initialize_snmp(void)
 	snmp_mib2_set_sysname(SNMP_SYSNAME, &SNMP_SYSNAME_LEN, snmp_buffer);
 
 	snmp_set_mibs(my_snmp_mibs, LWIP_ARRAYSIZE(my_snmp_mibs));
+
 	
     snmp_init();
 
     // reserve memory for the snmp data buffer
-    snmp_data_buffer = malloc(128 * sizeof(char));
+    snmp_data_buffer = malloc(SNMP_BUFFER_SIZE * sizeof(char));
 
     const struct snmp_obj_id* oid = snmp_get_device_enterprise_oid();
 	ESP_LOGI(TAG, "initialize_snmp(%d.%d.%d.%d.%d.%d.%d) finished.", oid->id[0], oid->id[1], oid->id[2], oid->id[3], oid->id[4], oid->id[5], oid->id[6]);
