@@ -90,8 +90,8 @@ u16_t SNMP_SYSDESCR_LEN = sizeof("ubirch_snmp_agent");
 u8_t * SNMP_SYSCONTACT = (u8_t*) "waldemar.gruenwald@ubirch.com";
 u16_t SNMP_SYSCONTACT_LEN = sizeof("waldemar.gruenwald@ubirch.com");
 //1.3.6.1.2.1.1.5.0
-u8_t * SNMP_SYSNAME = (u8_t*) "ESP32_Core_board_V2";							
-u16_t SNMP_SYSNAME_LEN = sizeof("ESP32_Core_board_V2");
+u8_t *SNMP_SYSNAME = (u8_t *) "ESP32-WROOM-32";
+u16_t SNMP_SYSNAME_LEN = sizeof("ESP32-WROOM-32");
 //1.3.6.1.2.1.1.6.0
 u8_t * SNMP_SYSLOCATION = (u8_t*) "ubirch GmbH";
 u16_t SNMP_SYSLOCATION_LEN = sizeof("ubirch GmbH");
