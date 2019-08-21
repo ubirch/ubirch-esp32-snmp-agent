@@ -45,6 +45,15 @@
  *
  */
 
+/*!
+ * ```
+ * @author Waldemar Gruenwald
+ * @date   2019-07-31
+ *
+ * @brief Adapted to example to be used as a library for esp32 devices to provide an snmp agent
+ */
+
+
 //--- global library
 #include <string.h>
 
