@@ -93,8 +93,8 @@ static const char *TAG = "ubirch_snmp";
 */
 static const struct snmp_mib *my_snmp_mibs[] = { &mib2, &ubirch_mib };
 //1.3.6.1.2.1.1.1.0
-u8_t * SNMP_SYSDESCR = (u8_t*) "ubirch_snmp_agent";
-u16_t SNMP_SYSDESCR_LEN = sizeof("ubirch_snmp_agent");
+u8_t * SNMP_SYSDESCR = (u8_t*) "ubirch_snmp_agent_v1.3";
+u16_t SNMP_SYSDESCR_LEN = sizeof("ubirch_snmp_agent_v1.3");
 //1.3.6.1.2.1.1.4.0
 u8_t * SNMP_SYSCONTACT = (u8_t*) "waldemar.gruenwald@ubirch.com";
 u16_t SNMP_SYSCONTACT_LEN = sizeof("waldemar.gruenwald@ubirch.com");
